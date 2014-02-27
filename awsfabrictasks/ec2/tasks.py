@@ -161,7 +161,7 @@ def ec2_stop_instance(nowait=False):
     Stop EC2 instance.
 
     :param nowait: Set to ``True`` to let the EC2 instance stop in the
-        background instead of waiting for it to start. Defaults to ``False``.
+        background instead of waiting for it to stop. Defaults to ``False``.
     """
     instancewrapper = Ec2InstanceWrapper.get_from_host_string()
     instancewrapper.instance.stop()
