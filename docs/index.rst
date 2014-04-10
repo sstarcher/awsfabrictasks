@@ -105,6 +105,13 @@ where ``<nametag>`` is the name you want to tag your new instance with. You
 will be asked to choose a config from ``EC2_LAUNCH_CONFIGS``, and to confirm
 all your choices before the instance in created.
 
+Note that you can add subnet_id in configuration to use Amazon VPC instead of classic ec2 instance.
+Then you have to specify wich way you want to connect to your instance with a specific 'access_vpc' tag.
+Options are :
+
+- 'vpn' : connect via local ip, assuming you're connected to Amazon VPN (ipsec).
+- 'public' : connect via elastic static ip, assuming you attached it on the instance before.
+
 
 More task-examples
 ==================
