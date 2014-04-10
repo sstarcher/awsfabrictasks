@@ -155,6 +155,21 @@ class NotExactlyOneInstanceError(InstanceLookupError):
     Raised when more than one instance is found when expecting exactly one instance.
     """
 
+class NoStaticForVPCInstanceError(InstanceLookupError):
+    """
+    Raised when we can't find an elastic ip for a VPC instance where access_vpc is 'public'.
+    """
+
+class NoPrivateForVPCInstanceError(InstanceLookupError):
+    """
+    Raised when we can't find an private ip for a VPC instance where access_vpc is 'vpn'.
+    """
+
+class NoAccessVPCInstanceInstanceError(InstanceLookupError):
+    """
+    Raised when we can't find an access_vpc tag for a VPC instance.
+    """
+
 class Ec2InstanceWrapper(object):
     """
     Wraps a :class:`boto.ec2.instance.Instance` with convenience functions.
@@ -211,6 +226,21 @@ class Ec2InstanceWrapper(object):
         """
         user = self['tags'].get('awsfab-ssh-user', awsfab_settings.EC2_INSTANCE_DEFAULT_SSHUSER)
         host = self['public_dns_name']
+        # VPC instances doesn't have public_dns_name, so we have to elastic ip to connect to instances
+        if self['vpc_id'] is not None:
+            # we need access_vpc tag to know how we decide to access the instance
+            access_vpc = self.instance.tags.get('access_vpc')
+            # we will access instance via vpn
+            if access_vpc == 'vpn':
+                host = self['private_ip_address']
+            # we will access instance via public ip directly
+            elif access_vpc == 'public':
+                host = self['ip_address']
+                if host is None or host == '':
+                    raise NoStaticForVPCInstanceError('%s is on vpc_id %s but doesn\'t have any elastic ip, please add it manually.'
+                        % (self, self['vpc_id'], ))
+            else:
+                raise NoAccessVPCInstanceError('access_vpc tag not found on vpc_id %s.' % (self, self['vpc_id'], ))
         return '{user}@{host}'.format(**vars())
 
     def get_ssh_key_filename(self):
@@ -580,14 +610,27 @@ class Ec2LaunchInstance(object):
         if not configname in awsfab_settings.EC2_LAUNCH_CONFIGS:
             abort('"{configname}" is not in awsfab_settings.EC2_LAUNCH_CONFIGS'.format(**vars()))
         conf = awsfab_settings.EC2_LAUNCH_CONFIGS[configname]
-        kw = dict(key_name = conf['key_name'],
-                  instance_type = conf['instance_type'],
-                  security_groups = conf['security_groups'])
+        kw = dict(key_name=conf['key_name'],
+                  instance_type=conf['instance_type'],
+                  security_groups=conf['security_groups'])
         try:
             user_data = zipit(conf['user_data'])
             kw['user_data'] = user_data
         except KeyError:
             pass
+
+        # we add subnet_id for VPC instance if needed
+        try:
+            kw['subnet_id'] = conf['subnet_id']
+        except KeyError:
+            pass
+
+        # we add access_vpc for VPC instance if needed
+        try:
+            kw['access_vpc'] = conf['access_vpc']
+        except KeyError:
+            pass
+
         if 'availability_zone' in conf:
             kw['placement'] = conf['region'] + conf['availability_zone']
         self.conf = conf
