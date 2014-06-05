@@ -612,7 +612,8 @@ class Ec2LaunchInstance(object):
         conf = awsfab_settings.EC2_LAUNCH_CONFIGS[configname]
         kw = dict(key_name=conf['key_name'],
                   instance_type=conf['instance_type'],
-                  security_groups=conf['security_groups'])
+                  security_groups=conf['security_groups'],
+                  security_group_ids=conf['security_group_ids'])
         try:
             user_data = zipit(conf['user_data'])
             kw['user_data'] = user_data
