@@ -256,7 +256,10 @@ class Ec2InstanceWrapper(object):
             the region.
         :return: A :class:`Ec2InstanceWrapper` contaning the requested instance.
         """
-        region, name = parse_instancename(instancename_with_optional_region)
+        try:
+            region, name = parse_instancename(instancename_with_optional_region)
+        except TypeError:
+            raise TypeError("Did you supply an argument to the ec2instance decorator?")
         connection = connect_to_region(region_name=region, **awsfab_settings.AUTH)
         if not connection:
             raise Ec2RegionConnectionError(region)
