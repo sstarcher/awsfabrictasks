@@ -64,8 +64,8 @@ class TestEc2LaunchInstance(TestCase):
         self.conf = {'instance_type': 't1.micro',
                      'key_name': 'awstestkey',
                      'security_groups': ['testgroup'],
-                     'extrastuff': 'test'}
-
+                     'extrastuff': 'test',
+                     'subnet_id': 'subnet_id_test'}
 
     def _create_launcher(self, settings={}, launcher_kw={}):
         awsfab_settings.reset_settings(**settings)
@@ -80,7 +80,8 @@ class TestEc2LaunchInstance(TestCase):
         self.assertEquals(launcher.conf, self.conf)
         self.assertEquals(launcher.kw, {'instance_type': 't1.micro',
                                         'key_name': 'awstestkey',
-                                        'security_groups': ['testgroup']})
+                                        'security_groups': ['testgroup'],
+                                        'subnet_id': 'subnet_id_test'})
         self.assertEquals(launcher.instance, None)
         self.assertEquals(launcher.NAME_EXISTS_CHECKED, True)
 

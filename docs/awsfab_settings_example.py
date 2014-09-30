@@ -65,7 +65,9 @@ EC2_LAUNCH_CONFIGS = {
         'tags': {
             'awsfab-ssh-user': 'ubuntu'
         },
-        'user_data': user_data_example
+        'user_data': user_data_example,
+        # If you want to use Amazon VPC, you can add subnet_id
+        'subnet_id': 'subnet-xxxxxx'
     }
 }
 
